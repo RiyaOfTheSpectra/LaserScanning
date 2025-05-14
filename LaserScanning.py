@@ -5,8 +5,14 @@ from nidaqmx.constants import AcquisitionType
 
 def GenerateGrid(
         ampl,
-        step
+        step = 0.2
         ):
+    """
+    Generates a grid of samples to write to the mirror setups.  Each sample is
+    generated thrice, so that the acquisition can occur on the middle step. This
+    way, a data race, wherein acquisition is done before the mirrors have moved,
+    is avoided.
+    """
 
     ampl = ampl / 0.8
     step = step / 0.8
@@ -25,12 +31,15 @@ def Scan(
         box,
         aq_time, # time spent on each sample in milliseconds
         ):
+    """
+    Scans and returns the filtered scanning data.
+    """
 
     x, y = box
     z = np.zeros(np.shape(x))
 
     samps = len(x) // 3
-    rate = 1e6 / aq_time
+    rate = 1e3 / aq_time
     l = int(np.sqrt(samps))
 
     with (
