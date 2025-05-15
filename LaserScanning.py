@@ -52,7 +52,7 @@ def Scan(
     l = int(np.sqrt(samps))
     z = x + y
 
-    now = datetime.now() + timedelta(microseconds=500)
+    trigger_name = "/Dev1/ao/StartTrigger"
 
     with (
             ni.Task() as ao,
@@ -69,19 +69,22 @@ def Scan(
             sample_mode = AcquisitionType.FINITE,
             samps_per_chan = samps
             )
-        ao.triggers.start_trigger.cfg_time_start_trig(now)
+        #ao.triggers.start_trigger.cfg_time_start_trig(now)
 
         ai.timing.cfg_samp_clk_timing(
             rate,
             sample_mode = AcquisitionType.FINITE,
             samps_per_chan = samps
             )
-        ai.triggers.start_trigger.cfg_time_start_trig(now)
+        ai.triggers.start_trigger.cfg_dig_edge_start_trigger(trigger_name)
         ai.triggers.start_trigger.delay_units = DigitalWidthUnits.SAMPLE_CLOCK_PERIODS
         ai.triggers.start_trigger.delay = 0.5
 
-        ao.write([x, y])
         z = ai.read()
+        ao.write([x, y])
+
+        ai.start()
+        ao.start()
 
     z = np.reshape(z, (l, l, 3))[:, :, 1]
     for i in range(l):
