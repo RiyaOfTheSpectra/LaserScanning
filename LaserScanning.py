@@ -99,7 +99,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if not ( args.show & (args.output==None) ):
-        raise RuntimeError("The output will not be shown or saved, and will be forgotten, for ever…\nDon't.")
+        #raise RuntimeError("The output will not be shown or saved, and will be forgotten, for ever…\nDon't.")
+        # TODO: Change to error.
+        input("The output will not be shown or saved, and will be forgotten, for ever…\nDon't.")
 
     box = GenerateGrid(args.amplitude, step=args.angl_step)
     z = Scan(box, args.time_step)
