@@ -25,8 +25,14 @@ def GenerateGrid(
             ampl + step,
             step,
             )
+    l = len(a)
 
-    x, y = np.meshgrid(a, a)
+    x = np.zeros((l, l))
+    y = np.zeros((l, l))
+
+    for i in range(l):
+        x[i,:] = a if i % 2 == 0 else np.flip(a)
+        y[i,:] = a[i]
 
     return (np.repeat(x, 3), np.repeat(y, 3))
 
@@ -39,11 +45,11 @@ def Scan(
     """
 
     x, y = box
-    z = np.zeros(np.shape(x))
 
     samps = len(x) // 3
     rate = 3e3 / aq_time
     l = int(np.sqrt(samps))
+    z = x + y
 
     with (
             ni.Task() as ao,
@@ -66,7 +72,7 @@ def Scan(
                 sample_mode = AcquisitionType.FINITE,
                 samps_per_chan = samps
                 )
-        ai.triggers.cfg_dig_edge_start_trig("/Dev1/ao0")
+        ai.triggers.start_trigger.cfg_dig_edge_start_trig("/Dev1/ao0")
 
         ao.write([x, y])
         z = ai.read()
@@ -74,7 +80,10 @@ def Scan(
         ai.start()
         ao.start()
 
-    return np.reshape(z, (l, l, 3))[:, :, 1]
+    z = np.reshape(z, (l, l, 3))[:, :, 1]
+    for i in range(l):
+        z[i] = z[i] if i % 2 == 0 else np.flip(z[i])
+    return z
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
