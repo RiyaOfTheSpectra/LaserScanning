@@ -52,7 +52,7 @@ def Scan(
     l = int(np.sqrt(samps))
     z = x + y
 
-    now = dt.now() + td(microseconds=500)
+    now = datetime.now() + timedelta(microseconds=500)
 
     with (
             ni.Task() as ao,
