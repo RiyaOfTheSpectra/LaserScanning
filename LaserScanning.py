@@ -15,6 +15,8 @@ def GenerateGrid(
     is avoided.
     """
 
+    # TODO: Multipliers are for a certain position of jumper J7 and gain of
+    # the amplifier.  Need to encode that properly.
     ampl = ampl / 0.8
     step = step / 0.8
 
