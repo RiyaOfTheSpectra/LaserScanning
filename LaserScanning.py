@@ -1,8 +1,9 @@
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
 import nidaqmx as ni
-from nidaqmx.constants import AcquisitionType
+from nidaqmx.constants import AcquisitionType, DigitalWidthUnits
 
 def GenerateGrid(
         ampl,
@@ -51,6 +52,8 @@ def Scan(
     l = int(np.sqrt(samps))
     z = x + y
 
+    now = dt.now() + td(microseconds=500)
+
     with (
             ni.Task() as ao,
             ni.Task() as ai
@@ -62,23 +65,23 @@ def Scan(
         ai.ai_channels.add_ai_voltage_chan("Dev1/ai0")
 
         ao.timing.cfg_samp_clk_timing(
-                rate,
-                sample_mode = AcquisitionType.FINITE,
-                samps_per_chan = samps
-                )
+            rate,
+            sample_mode = AcquisitionType.FINITE,
+            samps_per_chan = samps
+            )
+        ao.triggers.start_trigger.cfg_time_start_trig(now)
 
         ai.timing.cfg_samp_clk_timing(
-                rate,
-                sample_mode = AcquisitionType.FINITE,
-                samps_per_chan = samps
-                )
-        ai.triggers.start_trigger.cfg_dig_edge_start_trig("/Dev1/ao0")
+            rate,
+            sample_mode = AcquisitionType.FINITE,
+            samps_per_chan = samps
+            )
+        ai.triggers.start_trigger.cfg_time_start_trig(now)
+        ai.triggers.start_trigger.delay_units = DigitalWidthUnits.SAMPLE_CLOCK_PERIODS
+        ai.triggers.start_trigger.delay = 0.5
 
         ao.write([x, y])
         z = ai.read()
-
-        ai.start()
-        ao.start()
 
     z = np.reshape(z, (l, l, 3))[:, :, 1]
     for i in range(l):
