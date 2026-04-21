@@ -1,5 +1,6 @@
 *~
+*.swp
+__pycache__*
 .venv
 .python-version
 uv.lock
-*.swp
