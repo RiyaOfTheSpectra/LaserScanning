@@ -12,7 +12,7 @@ def Scan(
     step=0.2,
     aq_time_ms=0.1,  # time spent on each sample in milliseconds
     dry=False,
-    average=0,
+    average=1,
 ):
     """
     Generates a grid of samples to write to the mirror setups.  Each sample is
@@ -34,7 +34,7 @@ def Scan(
     )
     l = len(a)
 
-    frames = 2 + average
+    frames = 1 + average
 
     x, y = np.meshgrid(a, a)
 
@@ -109,13 +109,6 @@ def Scan(
         z = np.reshape(z, (2 * l, l, frames))[:, :, 1]
     v = np.array([z[2 * i] for i in range(l)])
     return v
-
-def CleanUp():
-    with ni.Task() as ao:
-        ao.ao_channels.add_ao_voltage_chan("Dev1/ao0:1")
-        ao.write([0, 0])
-        ao.wait_until_done()
-    return
 
 def AlignAPD(channel="0", frequency=1, amplitude=0.2, step=0.002):
     read_rate_hz = 20
@@ -199,4 +192,11 @@ def AlignAPD(channel="0", frequency=1, amplitude=0.2, step=0.002):
         except KeyboardInterrupt:
             exit
 
+    return
+
+def CleanUp():
+    with ni.Task() as ao:
+        ao.ao_channels.add_ao_voltage_chan("Dev1/ao0:1")
+        ao.write([0, 0])
+        ao.wait_until_done()
     return
