@@ -10,13 +10,14 @@ from matplotlib.backend_bases import key_press_handler
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
                                                NavigationToolbar2Tk)
 from matplotlib.figure import Figure
+from matplotlib.gridspec import GridSpec
 
 from LaserScanning import AlignAPD, Scan, CleanUp
 
 from Config import LoadConf
 
-RESOLUTIONS = [440, 720, 1080, 2160]
-ADC_RANGES = [1, 2, 5, 10]
+RESOLUTIONS = (440, 720, 1080, 2160)
+ADC_RANGES  = (1, 2, 5, 10)
 
 class Display():
     def __init__(self):
@@ -61,14 +62,24 @@ class Display():
         ttk.Label(self.control_panel, text="Acquisition Time (in ms)").grid(column=0, row=3, sticky=tk.W)
         ttk.Label(self.control_panel, text="Averaging").grid(column=0, row=4, sticky=tk.W)
 
-        self.adc_entry = tk.Listbox(self.control_panel, listvariable=self.adc_ranges, height=4)
+        self.adc_entry = ttk.Combobox(self.control_panel)
+        self.adc_entry['values'] = ADC_RANGES
+        self.adc_entry.state(['readonly'])
+        self.adc_entry.set('1')
         self.adc_entry.grid(column=1, row=0, sticky=tk.W)
-        self.res_entry = tk.Listbox(self.control_panel, listvariable=self.resolution, height=4)
+
+        self.res_entry = ttk.Combobox(self.control_panel)
+        self.res_entry['values'] = RESOLUTIONS
+        self.res_entry.state(['readonly'])
+        self.res_entry.set('440')
         self.res_entry.grid(column=1, row=1, sticky=tk.W)
+
         self.scz_entry = ttk.Entry(self.control_panel, textvariable=self.scan_size_um)
         self.scz_entry.grid(column=1, row=2, sticky=tk.W)
+
         self.aqt_entry = ttk.Entry(self.control_panel, textvariable=self.aq_time_ms)
         self.aqt_entry.grid(column=1, row=3, sticky=tk.W)
+
         self.avg_entry = ttk.Entry(self.control_panel, textvariable=self.averaging)
         self.avg_entry.grid(column=1, row=4, sticky=tk.W)
 
@@ -94,10 +105,20 @@ class Display():
         self.root.bind('t', lambda x : self.aqt_entry.focus())
         self.root.bind('L', lambda x : self.load())
         self.root.bind('A', lambda x : self.align())
+        self.root.bind('<KeyPress-F5>', lambda x : self.scan())
 
         self.root.mainloop()
 
     def scan(self):
+        data = Scan(
+            self.config,
+            float(self.scan_size_um.get() * 1e-6),
+            int(self.res_entry.get()),
+            aq_time_ms = self.aq_time_ms.get(),
+            average = self.averaging.get()
+            )
+
+        self.plot(data, float(self.scan_size_um.get()))
         return
 
     def save(self):
@@ -107,10 +128,7 @@ class Display():
         file = askopenfile()
         data = np.loadtxt(file, delimiter=',')
 
-        self.get_ax_can()
-
-        self.ax.pcolormesh(data)
-        self.canvas.draw()
+        self.plot(data, 200)
         return
 
     def align(self):
@@ -134,15 +152,34 @@ class Display():
     def settings_load(self):
         return
 
-    def get_ax_can(self):
+    def plot(self, data, bounds_um, ticks=5):
+
         if hasattr(self, 'fig'):
-            self.ax.clear()
+            self.data_ax.clear()
+            self.cbar_ax.clear()
         else:
-            self.fig = Figure(figsize=(8,8), dpi=90)
-            self.ax = self.fig.add_subplot()
+            self.fig = Figure(figsize=(8.5,8), dpi=90)
+            gs = GridSpec(1, 2, width_ratios=[16,1])
+
+            self.data_ax = self.fig.add_subplot(gs[0])
+            self.cbar_ax = self.fig.add_subplot(gs[1])
             self.canvas = FigureCanvasTkAgg(self.fig, master=self.display)
             self.canvas.get_tk_widget().grid(column=0, row=0)
+
+        smap = self.data_ax.imshow(data)
+
+        dim = np.shape(data)[0]
+        ticks_pos = np.linspace(0, dim, ticks)
+        ticks_lab = np.linspace(-bounds_um * .5, bounds_um * .5, ticks)
+        self.data_ax.set_xticks(ticks_pos, ticks_lab)
+        self.data_ax.set_yticks(ticks_pos, ticks_lab)
+        self.data_ax.set_xlabel("um")
+        self.data_ax.set_ylabel("um")
+
+        self.fig.colorbar(smap, cax=self.cbar_ax, label="APD Voltage (V)")
+        self.canvas.draw()
         return
 
 if __name__ == "__main__":
     Display()
+    CleanUp()
