@@ -110,14 +110,12 @@ def Scan(
     v = np.array([z[2 * i] for i in range(l)])
     return v
 
-
 def CleanUp():
     with ni.Task() as ao:
         ao.ao_channels.add_ao_voltage_chan("Dev1/ao0:1")
         ao.write([0, 0])
         ao.wait_until_done()
     return
-
 
 def AlignAPD(channel="0", frequency=1, amplitude=0.2, step=0.002):
     read_rate_hz = 20
@@ -196,7 +194,7 @@ def AlignAPD(channel="0", frequency=1, amplitude=0.2, step=0.002):
             return (line,)
 
         try:
-            anim.FuncAnimation(fig=fig, func=update, interval=10, blit=False)
+            _anne = anim.FuncAnimation(fig=fig, func=update, interval=10, blit=False)
             plt.show()
         except KeyboardInterrupt:
             exit
