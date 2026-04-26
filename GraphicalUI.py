@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter.messagebox import showwarning, showerror
 from tkinter.filedialog import askopenfile, asksaveasfile
+from tkinter.simpledialog import askinteger
 
 import numpy as np
 
@@ -8,6 +10,8 @@ from matplotlib.backend_bases import key_press_handler
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
                                                NavigationToolbar2Tk)
 from matplotlib.figure import Figure
+
+from LaserScanning import AlignAPD, Scan, CleanUp
 
 RESOLUTIONS = [440, 720, 1080, 2160]
 ADC_RANGES = [1, 2, 5, 10]
@@ -65,14 +69,22 @@ class Display():
         self.avg_entry.grid(column=1, row=4, sticky=tk.W)
 
         # Populating the menu bar
-        ttk.Button(self.menu_bar, text="Scan", command=self.scan).grid(row=0, column=1, sticky=(tk.N, tk.W, tk.E, tk.S))
-        ttk.Button(self.menu_bar, text="Save", command=self.save).grid(row=0, column=2, sticky=(tk.N, tk.W, tk.E, tk.S))
-        ttk.Button(self.menu_bar, text="Load", command=self.load)
-        .grid(row=0, column=3, sticky=(tk.N, tk.W, tk.E, tk.S))
-        ttk.Button(self.menu_bar, text="Save Settigns", command=self.settings_save).grid(row=0, column=4, sticky=(tk.N, tk.W, tk.E, tk.S))
-        ttk.Button(self.menu_bar, text="Load Settings", command=self.settings_load).grid(row=0, column=5, sticky=(tk.N, tk.W, tk.E, tk.S))
-        ttk.Button(self.menu_bar, text="Mirror Hold", command=self.mirror_hold).grid(row=0, column=6, sticky=(tk.N, tk.W, tk.E, tk.S))
-        ttk.Button(self.menu_bar, text="Config", command=self.config).grid(row=0, column=7, sticky=(tk.N, tk.W, tk.E, tk.S))
+        ttk.Button(self.menu_bar, text="Scan", command=self.scan)\
+                .grid(row=0, column=1, sticky=(tk.N, tk.W, tk.E, tk.S))
+        ttk.Button(self.menu_bar, text="Save", command=self.save)\
+                .grid(row=0, column=2, sticky=(tk.N, tk.W, tk.E, tk.S))
+        ttk.Button(self.menu_bar, text="Load", command=self.load)\
+                .grid(row=0, column=3, sticky=(tk.N, tk.W, tk.E, tk.S))
+        ttk.Button(self.menu_bar, text="Align", command=self.align)\
+                .grid(row=0, column=4, sticky=(tk.N, tk.W, tk.E, tk.S))
+        ttk.Button(self.menu_bar, text="Save Settigns", command=self.settings_save)\
+                .grid(row=0, column=5, sticky=(tk.N, tk.W, tk.E, tk.S))
+        ttk.Button(self.menu_bar, text="Load Settings", command=self.settings_load)\
+                .grid(row=0, column=6, sticky=(tk.N, tk.W, tk.E, tk.S))
+        ttk.Button(self.menu_bar, text="Mirror Hold", command=self.mirror_hold)\
+                .grid(row=0, column=7, sticky=(tk.N, tk.W, tk.E, tk.S))
+        ttk.Button(self.menu_bar, text="Config", command=self.config)\
+                .grid(row=0, column=8, sticky=(tk.N, tk.W, tk.E, tk.S))
 
         self.root.bind('r', lambda x : self.res_entry.focus())
         self.root.bind('t', lambda x : self.aqt_entry.focus())
@@ -98,13 +110,12 @@ class Display():
         return
 
     def align(self):
-        file = askopenfile()
-        data = np.loadtxt(file, delimiter=',')
-
-        self.get_ax_can()
-
-        self.ax.pcolormesh(data)
-        self.canvas.draw()
+        channel = askinteger("Align", "Choose channel to move.")
+        if channel != 0 and channel != 1:
+            showwarning("Channel not in range. Channel must be 0 or 1")
+            return
+        else:
+            AlignAPD(channel=str(channel))
         return
 
     def config(self):
