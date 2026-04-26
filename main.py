@@ -1,6 +1,7 @@
 import argparse
 from LaserScanning import Scan, AlignAPD, CleanUp, plt, np
 
+from ctypes import windll
 
 def main():
     parser = argparse.ArgumentParser()
@@ -90,6 +91,6 @@ def main():
         print(E)
         CleanUp()
 
-
 if __name__ == "__main__":
+    windll.shcore.SetProcessDpiAwareness(1)
     main()
