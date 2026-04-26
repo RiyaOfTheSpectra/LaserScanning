@@ -45,9 +45,9 @@ class Display():
         ttk.Label(self.control_panel, text="Acquisition Time (in ms)").grid(column=0, row=3, sticky=tk.W)
         ttk.Label(self.control_panel, text="Averaging").grid(column=0, row=4, sticky=tk.W)
 
-        self.adc_entry = tk.Listbox(self.control_panel, listvariable=self.adc_ranges)
+        self.adc_entry = tk.Listbox(self.control_panel, listvariable=self.adc_ranges, height=4)
         self.adc_entry.grid(column=1, row=0, sticky=tk.W)
-        self.res_entry = tk.Listbox(self.control_panel, listvariable=self.resolution)
+        self.res_entry = tk.Listbox(self.control_panel, listvariable=self.resolution, height=4)
         self.res_entry.grid(column=1, row=1, sticky=tk.W)
         self.scz_entry = ttk.Entry(self.control_panel, textvariable=self.scan_size_um)
         self.scz_entry.grid(column=1, row=2, sticky=tk.W)
@@ -56,11 +56,41 @@ class Display():
         self.avg_entry = ttk.Entry(self.control_panel, textvariable=self.averaging)
         self.avg_entry.grid(column=1, row=4, sticky=tk.W)
 
+        # Populating the menu bar
+        ttk.Button(self.menu_bar, text="Scan", command=self.scan).grid(row=0, column=1, sticky=(tk.N, tk.W, tk.E, tk.S))
+        ttk.Button(self.menu_bar, text="Save", command=self.save).grid(row=0, column=2, sticky=(tk.N, tk.W, tk.E, tk.S))
+        ttk.Button(self.menu_bar, text="Load", command=self.load).grid(row=0, column=3, sticky=(tk.N, tk.W, tk.E, tk.S))
+        ttk.Button(self.menu_bar, text="Save Settigns", command=self.settings_save).grid(row=0, column=4, sticky=(tk.N, tk.W, tk.E, tk.S))
+        ttk.Button(self.menu_bar, text="Load Settings", command=self.settings_load).grid(row=0, column=5, sticky=(tk.N, tk.W, tk.E, tk.S))
+        ttk.Button(self.menu_bar, text="Mirror Hold", command=self.mirror_hold).grid(row=0, column=6, sticky=(tk.N, tk.W, tk.E, tk.S))
+        ttk.Button(self.menu_bar, text="Config", command=self.config).grid(row=0, column=7, sticky=(tk.N, tk.W, tk.E, tk.S))
+
         self.root.bind('Q', lambda x : print(x))
         self.root.bind('r', lambda x : self.res_entry.focus)
         self.root.bind('t', lambda x : self.aqt_entry.focus)
 
         self.root.mainloop()
+
+    def scan(self):
+        return
+
+    def save(self):
+        return
+
+    def load(self):
+        return
+
+    def config(self):
+        return
+
+    def mirror_hold(self):
+        return
+
+    def settings_save(self):
+        return
+
+    def settings_load(self):
+        return
 
 if __name__ == "__main__":
     Display()
