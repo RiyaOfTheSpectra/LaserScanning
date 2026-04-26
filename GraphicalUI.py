@@ -13,6 +13,8 @@ from matplotlib.figure import Figure
 
 from LaserScanning import AlignAPD, Scan, CleanUp
 
+from Config import LoadConf
+
 RESOLUTIONS = [440, 720, 1080, 2160]
 ADC_RANGES = [1, 2, 5, 10]
 
@@ -22,6 +24,8 @@ class Display():
         self.root.title("Confocal Scanning Microscope")
 
         # Variables
+        self.config = LoadConf()
+
         self.resolution     = tk.IntVar(value=RESOLUTIONS)
         self.scan_size_um 	= tk.DoubleVar()
         self.averaging 	    = tk.IntVar()
@@ -30,11 +34,11 @@ class Display():
         self.mirror_hold 	= tk.BooleanVar()
 
         #self.resolution.set(440)
+        #self.adc_ranges.set(1)
         self.scan_size_um.set(256)
         self.averaging.set(1)
         self.aq_time_ms.set(0.1)
-        #self.adc_ranges.set(1)
-        #self.mirror_hold.set(False)
+        self.mirror_hold.set(False)
 
         # Frames and subframes
         self.frame = ttk.Frame(self.root)
