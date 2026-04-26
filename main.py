@@ -1,4 +1,5 @@
 import argparse
+from Config import LoadConf
 from LaserScanning import Scan, AlignAPD, CleanUp, plt, np
 
 from ctypes import windll
@@ -18,10 +19,10 @@ def main():
         help="Acquisition time for each pixel, in milliseconds.",
     )
     parser.add_argument(
-        "-y",
-        "--angl_step",
-        type=float,
-        help="Angular separation between pixels, in degrees.",
+        "-r",
+        "--resolution",
+        type=int,
+        help="Resolution of the scan, in pixels.",
     )
     parser.add_argument("-c", "--channel", type=str, help="Channel to align to APD.")
     parser.add_argument(
@@ -39,6 +40,8 @@ def main():
 
     args = parser.parse_args()
 
+    conf = LoadConf()
+
     try:
         match args.mode:
             case "scan":
@@ -50,8 +53,9 @@ def main():
                     )
 
                 z = Scan(
+                    conf,
                     args.amplitude,
-                    step=args.angl_step,
+                    resolution=args.resolution,
                     aq_time_ms=args.time_step,
                     average=args.average,
                 )
@@ -77,7 +81,7 @@ def main():
                         args.output,
                         z,
                         delimiter=",",
-                        header=f"Amplitude = {args.amplitude}°,\nAcquisition time = {args.time_step}ms\nAngular Resolution = {args.angl_step}°\nAverage = {average}",
+                        header=f"Amplitude = {args.amplitude}°,\nAcquisition time = {args.time_step}ms\nAngular Resolution = {args.resolution}°\nAverage = {average}",
                     )
 
             case "align":
@@ -85,7 +89,11 @@ def main():
                 CleanUp()
 
             case "dry":
-                Scan(args.amplitude, step=args.angl_step, dry=True)
+                Scan(
+                    conf,
+                    args.amplitude,
+                    resolution=args.resolution,
+                    dry=True)
 
     except Exception as E:
         print(E)

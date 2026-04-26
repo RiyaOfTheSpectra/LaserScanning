@@ -6,10 +6,10 @@ from nidaqmx.constants import AcquisitionType, DigitalWidthUnits, TerminalConfig
 from time import monotonic
 from math import floor
 
-
 def Scan(
-    ampl,
-    step=0.2,
+    config,
+    size,
+    resolution,
     aq_time_ms=0.1,  # time spent on each sample in milliseconds
     dry=False,
     average=1,
@@ -24,13 +24,12 @@ def Scan(
     """
     # TODO: Multipliers are for a certain position of jumper J7 and gain of
     # the amplifier.  Need to encode that properly.
-    ampl = ampl / 0.8
-    step = step / 0.8
+    ampl = .5 * size / config['magnification']
 
-    a = np.arange(
+    a = np.linspace(
         -ampl,
-        ampl + step,
-        step,
+        ampl,
+        resolution,
     )
     l = len(a)
 
@@ -68,15 +67,18 @@ def Scan(
 
     z = x + y
 
+    output_devs = f"{config['device']['name']}/ao{config['device']['x_channel']}:{config['device']['y_channel']}"
+    input_dev = f"{config['device']['name']}/ai{config['device']['apd_channel']}"
+
     with ni.Task() as ao, ni.Task() as ai:
-        ao.ao_channels.add_ao_voltage_chan("Dev1/ao0:1")
+        ao.ao_channels.add_ao_voltage_chan(output_devs)
 
         ai.ai_channels.add_ai_voltage_chan(
-            "Dev1/ai0", terminal_config=TerminalConfiguration.DIFF
+            input_dev, terminal_config=TerminalConfiguration.DIFF
         )
 
-        ai.ai_channels["Dev1/ai0"].ai_rng_high = 1
-        ai.ai_channels["Dev1/ai0"].ai_rng_low = -1
+        ai.ai_channels[input_dev].ai_rng_high = 1
+        ai.ai_channels[input_dev].ai_rng_low = -1
 
         ao.timing.cfg_samp_clk_timing(
             rate, sample_mode=AcquisitionType.FINITE, samps_per_chan=samps
