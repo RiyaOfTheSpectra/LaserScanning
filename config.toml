@@ -1,0 +1,7 @@
+magnification = 98.4e-6
+
+[device]
+name = 'Dev1'
+x_channel = 0
+y_channel = 1
+apd_channel = 0
