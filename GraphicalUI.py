@@ -67,7 +67,8 @@ class Display():
         # Populating the menu bar
         ttk.Button(self.menu_bar, text="Scan", command=self.scan).grid(row=0, column=1, sticky=(tk.N, tk.W, tk.E, tk.S))
         ttk.Button(self.menu_bar, text="Save", command=self.save).grid(row=0, column=2, sticky=(tk.N, tk.W, tk.E, tk.S))
-        ttk.Button(self.menu_bar, text="Load", command=self.load).grid(row=0, column=3, sticky=(tk.N, tk.W, tk.E, tk.S))
+        ttk.Button(self.menu_bar, text="Load", command=self.load)
+        .grid(row=0, column=3, sticky=(tk.N, tk.W, tk.E, tk.S))
         ttk.Button(self.menu_bar, text="Save Settigns", command=self.settings_save).grid(row=0, column=4, sticky=(tk.N, tk.W, tk.E, tk.S))
         ttk.Button(self.menu_bar, text="Load Settings", command=self.settings_load).grid(row=0, column=5, sticky=(tk.N, tk.W, tk.E, tk.S))
         ttk.Button(self.menu_bar, text="Mirror Hold", command=self.mirror_hold).grid(row=0, column=6, sticky=(tk.N, tk.W, tk.E, tk.S))
@@ -76,6 +77,7 @@ class Display():
         self.root.bind('r', lambda x : self.res_entry.focus())
         self.root.bind('t', lambda x : self.aqt_entry.focus())
         self.root.bind('L', lambda x : self.load())
+        self.root.bind('A', lambda x : self.align())
 
         self.root.mainloop()
 
@@ -86,6 +88,16 @@ class Display():
         return
 
     def load(self):
+        file = askopenfile()
+        data = np.loadtxt(file, delimiter=',')
+
+        self.get_ax_can()
+
+        self.ax.pcolormesh(data)
+        self.canvas.draw()
+        return
+
+    def align(self):
         file = askopenfile()
         data = np.loadtxt(file, delimiter=',')
 
@@ -108,7 +120,6 @@ class Display():
         return
 
     def get_ax_can(self):
-
         if hasattr(self, 'fig'):
             self.ax.clear()
         else:
@@ -116,7 +127,6 @@ class Display():
             self.ax = self.fig.add_subplot()
             self.canvas = FigureCanvasTkAgg(self.fig, master=self.display)
             self.canvas.get_tk_widget().grid(column=0, row=0)
-
         return
 
 if __name__ == "__main__":
