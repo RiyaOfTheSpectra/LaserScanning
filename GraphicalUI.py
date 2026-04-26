@@ -1,5 +1,13 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter.filedialog import askopenfile, asksaveasfile
+
+import numpy as np
+
+from matplotlib.backend_bases import key_press_handler
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
+                                               NavigationToolbar2Tk)
+from matplotlib.figure import Figure
 
 RESOLUTIONS = [440, 720, 1080, 2160]
 ADC_RANGES = [1, 2, 5, 10]
@@ -65,9 +73,9 @@ class Display():
         ttk.Button(self.menu_bar, text="Mirror Hold", command=self.mirror_hold).grid(row=0, column=6, sticky=(tk.N, tk.W, tk.E, tk.S))
         ttk.Button(self.menu_bar, text="Config", command=self.config).grid(row=0, column=7, sticky=(tk.N, tk.W, tk.E, tk.S))
 
-        self.root.bind('Q', lambda x : print(x))
-        self.root.bind('r', lambda x : self.res_entry.focus)
-        self.root.bind('t', lambda x : self.aqt_entry.focus)
+        self.root.bind('r', lambda x : self.res_entry.focus())
+        self.root.bind('t', lambda x : self.aqt_entry.focus())
+        self.root.bind('L', lambda x : self.load())
 
         self.root.mainloop()
 
@@ -78,6 +86,13 @@ class Display():
         return
 
     def load(self):
+        file = askopenfile()
+        data = np.loadtxt(file, delimiter=',')
+
+        self.get_ax_can()
+
+        self.ax.pcolormesh(data)
+        self.canvas.draw()
         return
 
     def config(self):
@@ -90,6 +105,18 @@ class Display():
         return
 
     def settings_load(self):
+        return
+
+    def get_ax_can(self):
+
+        if hasattr(self, 'fig'):
+            self.ax.clear()
+        else:
+            self.fig = Figure(figsize=(8,8), dpi=90)
+            self.ax = self.fig.add_subplot()
+            self.canvas = FigureCanvasTkAgg(self.fig, master=self.display)
+            self.canvas.get_tk_widget().grid(column=0, row=0)
+
         return
 
 if __name__ == "__main__":
