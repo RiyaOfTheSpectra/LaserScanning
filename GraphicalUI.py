@@ -110,7 +110,7 @@ class Display():
         self.root.mainloop()
 
     def scan(self):
-        data = Scan(
+        self.data = Scan(
             self.config,
             float(self.scan_size_um.get() * 1e-6),
             int(self.res_entry.get()),
@@ -118,10 +118,17 @@ class Display():
             average = self.averaging.get()
             )
 
-        self.plot(data, float(self.scan_size_um.get()))
+        self.plot(self.data, float(self.scan_size_um.get()))
         return
 
     def save(self):
+        output_file = asksaveasfile()
+        np.savetxt(
+            output_file,
+            self.data,
+            delimiter=",",
+            header=\
+            f"Size = {self.scan_size_um.get()}um,\nAcquisition time = {self.aq_time_ms.get()}ms\nResolution = {self.resolution.get()}\nAverage = {self.averaging.get()}")
         return
 
     def load(self):
