@@ -34,11 +34,9 @@ class Display():
         self.adc_ranges 	= tk.IntVar(value=ADC_RANGES)
         self.mirror_hold 	= tk.BooleanVar()
 
-        #self.resolution.set(440)
-        #self.adc_ranges.set(1)
         self.scan_size_um.set(256)
         self.averaging.set(1)
-        self.aq_time_ms.set(0.1)
+        self.aq_time_ms.set(0.01)
         self.mirror_hold.set(False)
 
         # Frames and subframes
