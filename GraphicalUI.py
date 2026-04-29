@@ -56,10 +56,10 @@ class Display():
         self.root.rowconfigure(0, weight=1)
 
         # Populating the control panel
-        ttk.Label(self.control_panel, text="ADC Range (in V)").grid(column=0, row=0, sticky=tk.W)
+        ttk.Label(self.control_panel, text="ADC Range (V)").grid(column=0, row=0, sticky=tk.W)
         ttk.Label(self.control_panel, text="Resolution").grid(column=0, row=1, sticky=tk.W)
-        ttk.Label(self.control_panel, text="Scan Size (in micron)").grid(column=0, row=2, sticky=tk.W)
-        ttk.Label(self.control_panel, text="Acquisition Time (in ms)").grid(column=0, row=3, sticky=tk.W)
+        ttk.Label(self.control_panel, text="Scan Size (micron)").grid(column=0, row=2, sticky=tk.W)
+        ttk.Label(self.control_panel, text="Acquisition Time (ms)").grid(column=0, row=3, sticky=tk.W)
         ttk.Label(self.control_panel, text="Averaging").grid(column=0, row=4, sticky=tk.W)
 
         self.adc_entry = ttk.Combobox(self.control_panel)
@@ -92,7 +92,7 @@ class Display():
                 .grid(row=0, column=3, sticky=(tk.N, tk.W, tk.E, tk.S))
         ttk.Button(self.menu_bar, text="Align", command=self.align)\
                 .grid(row=0, column=4, sticky=(tk.N, tk.W, tk.E, tk.S))
-        ttk.Button(self.menu_bar, text="Save Settigns", command=self.settings_save)\
+        ttk.Button(self.menu_bar, text="Save Settings", command=self.settings_save)\
                 .grid(row=0, column=5, sticky=(tk.N, tk.W, tk.E, tk.S))
         ttk.Button(self.menu_bar, text="Load Settings", command=self.settings_load)\
                 .grid(row=0, column=6, sticky=(tk.N, tk.W, tk.E, tk.S))
