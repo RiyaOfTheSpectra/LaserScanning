@@ -126,7 +126,7 @@ class Display():
             self.data,
             delimiter=",",
             header=\
-            f"Size = {self.scan_size_um.get()}um,\nAcquisition time = {self.aq_time_ms.get()}ms\nResolution = {self.resolution.get()}\nAverage = {self.averaging.get()}")
+            f"Size = {self.scan_size_um.get()}um,\nAcquisition time = {self.aq_time_ms.get()}ms\nResolution = {self.res_entry.get()}\nAverage = {self.averaging.get()}")
         return
 
     def load(self):
