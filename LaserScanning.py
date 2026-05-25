@@ -112,7 +112,7 @@ def Scan(
     v = np.array([z[2 * i] for i in range(l)])
     return v
 
-def AlignAPD(channel="0", frequency=1, amplitude=0.2, step=0.002):
+def AlignAPD(channel="0", frequency=1, amplitude=0.2):
     read_rate_hz = 20
     disp_duration_sec = 6
     period = 1 / frequency
@@ -120,7 +120,6 @@ def AlignAPD(channel="0", frequency=1, amplitude=0.2, step=0.002):
     xlim = disp_duration_sec
 
     ampl = amplitude / 0.8
-    step = step / 0.8
 
     with (
         ni.Task() as apd,

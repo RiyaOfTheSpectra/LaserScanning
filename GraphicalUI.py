@@ -4,6 +4,8 @@ from tkinter.messagebox import showwarning, showerror
 from tkinter.filedialog import askopenfile, asksaveasfile
 from tkinter.simpledialog import askinteger
 
+from multiprocessing.shared_memory import SharedMemory
+
 import numpy as np
 
 from matplotlib.backend_bases import key_press_handler
@@ -18,6 +20,7 @@ from Config import LoadConf
 
 RESOLUTIONS = (440, 720, 1080, 2160)
 ADC_RANGES  = (1, 2, 5, 10)
+CHANNELS    = ('0', '1')
 
 class Display():
     def __init__(self):
@@ -33,6 +36,10 @@ class Display():
         self.aq_time_ms 	= tk.DoubleVar()
         self.adc_ranges 	= tk.IntVar(value=ADC_RANGES)
         self.mirror_hold 	= tk.BooleanVar()
+        
+        self.align_channel  = tk.StringVar(value=CHANNELS)
+        self.align_ampl     = tk.DoubleVar()
+        self.align_freq_hz  = tk.DoubleVar()
 
         self.scan_size_um.set(256)
         self.averaging.set(1)
@@ -45,41 +52,64 @@ class Display():
         self.display        = ttk.Frame(self.frame, borderwidth=5)
         self.menu_bar       = ttk.Frame(self.frame, borderwidth=5)
         self.control_panel  = ttk.Frame(self.frame, borderwidth=5)
+        self.align_panel    = ttk.Frame(self.frame, borderwidth=5)
 
         self.display.grid(column=3, row=1, columnspan=5, rowspan=5)
         self.menu_bar.grid(column=0, row=0, columnspan=8, rowspan=1)
-        self.control_panel.grid(column=0, row=1, columnspan=3, rowspan=5)
+        self.control_panel.grid(column=0, row=1, columnspan=3, rowspan=2)
+        self.align_panel.grid(column=0, row=3, columnspan=3, rowspan=2)
 
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
 
         # Populating the control panel
-        ttk.Label(self.control_panel, text="ADC Range (V)").grid(column=0, row=0, sticky=tk.W)
-        ttk.Label(self.control_panel, text="Resolution").grid(column=0, row=1, sticky=tk.W)
-        ttk.Label(self.control_panel, text="Scan Size (micron)").grid(column=0, row=2, sticky=tk.W)
-        ttk.Label(self.control_panel, text="Acquisition Time (ms)").grid(column=0, row=3, sticky=tk.W)
-        ttk.Label(self.control_panel, text="Averaging").grid(column=0, row=4, sticky=tk.W)
+        ttk.Label(self.control_panel, text="Scan Settings").grid(column=0, row=0, columnspan=2, sticky=(tk.E, tk.W))
+
+        ttk.Label(self.control_panel, text="ADC Range (V)").grid(column=0, row=1, sticky=tk.W)
+        ttk.Label(self.control_panel, text="Resolution").grid(column=0, row=2, sticky=tk.W)
+        ttk.Label(self.control_panel, text="Scan Size (micron)").grid(column=0, row=3, sticky=tk.W)
+        ttk.Label(self.control_panel, text="Acquisition Time (ms)").grid(column=0, row=4, sticky=tk.W)
+        ttk.Label(self.control_panel, text="Averaging").grid(column=0, row=5, sticky=tk.W)
 
         self.adc_entry = ttk.Combobox(self.control_panel)
         self.adc_entry['values'] = ADC_RANGES
         self.adc_entry.state(['readonly'])
         self.adc_entry.set('1')
-        self.adc_entry.grid(column=1, row=0, sticky=tk.W)
+        self.adc_entry.grid(column=1, row=1, sticky=tk.W)
 
         self.res_entry = ttk.Combobox(self.control_panel)
         self.res_entry['values'] = RESOLUTIONS
         self.res_entry.state(['readonly'])
         self.res_entry.set('440')
-        self.res_entry.grid(column=1, row=1, sticky=tk.W)
+        self.res_entry.grid(column=1, row=2, sticky=tk.W)
 
         self.scz_entry = ttk.Entry(self.control_panel, textvariable=self.scan_size_um)
-        self.scz_entry.grid(column=1, row=2, sticky=tk.W)
+        self.scz_entry.grid(column=1, row=3, sticky=tk.W)
 
         self.aqt_entry = ttk.Entry(self.control_panel, textvariable=self.aq_time_ms)
-        self.aqt_entry.grid(column=1, row=3, sticky=tk.W)
+        self.aqt_entry.grid(column=1, row=4, sticky=tk.W)
 
         self.avg_entry = ttk.Entry(self.control_panel, textvariable=self.averaging)
-        self.avg_entry.grid(column=1, row=4, sticky=tk.W)
+        self.avg_entry.grid(column=1, row=5, sticky=tk.W)
+
+        # Populating the alignment panel
+        ttk.Label(self.align_panel, text="Align Settings").grid(column=0, row=0, columnspan=2, sticky=(tk.E, tk.W))
+
+        ttk.Label(self.align_panel, text="Channel").grid(column=0, row=1, sticky=tk.W)
+        ttk.Label(self.align_panel, text="Frequency (Hz)").grid(column=0, row=2, sticky=tk.W)
+        ttk.Label(self.align_panel, text="Amplitude (Degrees)").grid(column=0, row=3, sticky=tk.W)
+        
+        self.chan_entry = ttk.Combobox(self.align_panel)
+        self.chan_entry['values'] = CHANNELS
+        self.chan_entry.state(['readonly'])
+        self.chan_entry.set('0')
+        self.chan_entry.grid(column=1, row=1, sticky=tk.W)
+
+        self.frq_entry = ttk.Entry(self.align_panel, textvariable=self.align_freq_hz)
+        self.frq_entry.grid(column=1, row=2, sticky=tk.W)
+
+        self.ampl_entry = ttk.Entry(self.align_panel, textvariable=self.align_ampl)
+        self.ampl_entry.grid(column=1, row=3, sticky=tk.W)
 
         # Populating the menu bar
         ttk.Button(self.menu_bar, text="Scan", command=self.scan)\
@@ -115,6 +145,7 @@ class Display():
             aq_time_ms = self.aq_time_ms.get(),
             average = self.averaging.get()
             )
+        CleanUp()
 
         self.plot(self.data, float(self.scan_size_um.get()))
         return
@@ -133,16 +164,16 @@ class Display():
         file = askopenfile()
         data = np.loadtxt(file, delimiter=',')
 
-        self.plot(data, 200)
+        self.plot(data, int(self.scan_size_um.get()))
         return
 
     def align(self):
-        channel = askinteger("Align", "Choose channel to move.")
-        if channel != 0 and channel != 1:
-            showwarning("Channel not in range. Channel must be 0 or 1")
-            return
-        else:
-            AlignAPD(channel=str(channel))
+        AlignAPD(
+                channel=self.chan_entry.get(),
+                frequency=self.align_freq_hz.get(),
+                amplitude=self.align_ampl.get())
+        
+        CleanUp()
         return
 
     def config(self):
