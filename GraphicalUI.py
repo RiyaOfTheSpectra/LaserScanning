@@ -30,11 +30,9 @@ class Display():
         # Variables
         self.config = LoadConf()
 
-        self.resolution     = tk.IntVar(value=RESOLUTIONS)
         self.scan_size_um 	= tk.DoubleVar()
         self.averaging 	    = tk.IntVar()
         self.aq_time_ms 	= tk.DoubleVar()
-        self.adc_ranges 	= tk.IntVar(value=ADC_RANGES)
         self.mirror_hold 	= tk.BooleanVar()
         
         self.align_channel  = tk.StringVar(value=CHANNELS)
