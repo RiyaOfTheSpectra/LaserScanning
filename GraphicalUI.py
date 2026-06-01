@@ -19,7 +19,7 @@ from LaserScanning import AlignAPD, Scan, CleanUp
 from Config import LoadConf
 
 RESOLUTIONS = (440, 720, 1080, 2160)
-ADC_RANGES  = (1, 2, 5, 10)
+ADC_RANGES  = (0.2, 1, 5, 10)
 CHANNELS    = ('0', '1')
 
 class Display():
