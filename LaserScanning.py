@@ -37,6 +37,8 @@ def Scan(
 
     x, y = np.meshgrid(a, a)
 
+    # x and y boxes are repeated so that each line is scanned in the same direction.
+    # This bypasses alignment errors from a zig-zag scan pattern.
     x, y = (np.repeat(x, 2, axis=0), np.repeat(y, 2, axis=0))
     print(np.shape(x))
 
