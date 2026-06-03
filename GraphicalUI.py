@@ -20,7 +20,7 @@ from LaserScanning import AlignAPD, Scan, CleanUp
 from Config import LoadConf
 
 RESOLUTIONS = (440, 720, 1080, 2160)
-ADC_RANGES  = (1, 2, 5, 10)
+ADC_RANGES  = (0.2, 1, 5, 10)
 CHANNELS    = ('0', '1')
 
 class Display():
@@ -31,11 +31,9 @@ class Display():
         # Variables
         self.config = LoadConf()
 
-        self.resolution     = tk.IntVar(value=RESOLUTIONS)
         self.scan_size_um 	= tk.DoubleVar()
         self.averaging 	    = tk.IntVar()
         self.aq_time_ms 	= tk.DoubleVar()
-        self.adc_ranges 	= tk.IntVar(value=ADC_RANGES)
         self.mirror_hold 	= tk.BooleanVar()
         
         self.align_channel  = tk.StringVar(value=CHANNELS)
