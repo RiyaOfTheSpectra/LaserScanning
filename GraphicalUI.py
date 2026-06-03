@@ -6,6 +6,8 @@ from tkinter.simpledialog import askinteger
 
 from multiprocessing.shared_memory import SharedMemory
 import json
+from Schema import EXP_SETTINGS
+from cerberus import Validator
 
 import numpy as np
 
@@ -200,11 +202,15 @@ class Display():
         data = file.read()
         file.close()
         settings_shjh = json.loads(data)
-        self.scan_size_um.set(settings_shjh["scan_size_um"])
-        self.aq_time_ms.set(settings_shjh["aq_time_ms"])
-        self.averaging.set(settings_shjh["averaging"])
-        self.adc_entry(settings_shjh["adc_range"])
-        self.res_entry(settings_shjh["resolution"])
+        if Validator(EXP_SETTINGS).validate(settings_shjh):
+            self.scan_size_um.set(settings_shjh["scan_size_um"])
+            self.aq_time_ms.set(settings_shjh["aq_time_ms"])
+            self.averaging.set(settings_shjh["averaging"])
+            self.adc_entry.set(settings_shjh["adc_range"])
+            self.res_entry.set(settings_shjh["resolution"])
+        else:
+            print(Validator(EXP_SETTINGS).errors)
+            raise ValueError("Bad settings file")
         return
 
     def plot(self, data, bounds_um, ticks=5):
