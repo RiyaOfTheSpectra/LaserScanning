@@ -9,4 +9,5 @@ dependencies = [
     "matplotlib>=3.10.8",
     "nidaqmx>=1.4.1",
     "numpy>=2.4.4",
+    "pyperclip>=1.11.0",
 ]
