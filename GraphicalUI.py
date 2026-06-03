@@ -5,6 +5,7 @@ from tkinter.filedialog import askopenfile, asksaveasfile
 from tkinter.simpledialog import askinteger
 
 from multiprocessing.shared_memory import SharedMemory
+import json
 
 import numpy as np
 
@@ -183,9 +184,29 @@ class Display():
         return
 
     def settings_save(self):
+        settings = {
+            "scan_size_um"  : self.scan_size_um.get(),
+            "aq_time_ms"    : self.aq_time_ms.get(),
+            "averaging"     : self.averaging.get(),
+            "adc_range"     : self.adc_entry.get(),
+            "resolution"    : self.res_entry.get()
+        }
+        settings_string = json.dumps(settings, indent=4)
+        file = asksaveasfile()
+        file.write(settings_string)
+        file.close()
         return
 
     def settings_load(self):
+        file = askopenfile()
+        data = file.read()
+        file.close()
+        settings_shjh = json.loads(data)
+        self.scan_size_um.set(settings_shjh["scan_size_um"])
+        self.aq_time_ms.set(settings_shjh["aq_time_ms"])
+        self.averaging.set(settings_shjh["averaging"])
+        self.adc_entry(settings_shjh["adc_range"])
+        self.res_entry(settings_shjh["resolution"])
         return
 
     def plot(self, data, bounds_um, ticks=5):
