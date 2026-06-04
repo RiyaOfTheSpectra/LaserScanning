@@ -15,6 +15,8 @@ from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
 
+from pyperclip import copy
+
 from LaserScanning import AlignAPD, Scan, CleanUp
 
 from Config import LoadConf
@@ -235,14 +237,13 @@ class Display():
 
         self.canvas.callbacks.connect("button_press_event", self.on_click)
 
-        self.transform = self.data_ax.transData.inverted()
-        print(self.data_ax.transData.transform((0, 0)))
+        size = self.scan_size_um.get()
+        self.transform = lambda event: np.array2string((np.array(self.data_ax.transAxes.inverted().transform((event.x, event.y))) - np.array([0.5, 0.5])) * size)
         return
 
     def on_click(self, event):
         if event.inaxes == self.data_ax:
-            print(event.xdata, event.ydata)
-            print(self.transform.transform((event.xdata, event.ydata)))
+            copy(self.transform(event))
         return
 
 if __name__ == "__main__":
