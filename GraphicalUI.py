@@ -220,13 +220,13 @@ class Display():
             self.canvas = FigureCanvasTkAgg(self.fig, master=self.display)
             self.canvas.get_tk_widget().grid(column=0, row=0)
 
-        smap = self.data_ax.imshow(data)
+        smap = self.data_ax.imshow(np.flipud(data))
 
         dim = np.shape(data)[0]
         ticks_pos = np.linspace(0, dim, ticks)
         ticks_lab = np.linspace(-bounds_um * .5, bounds_um * .5, ticks)
         self.data_ax.set_xticks(ticks_pos, ticks_lab)
-        self.data_ax.set_yticks(ticks_pos, ticks_lab)
+        self.data_ax.set_yticks(ticks_pos, np.flip(ticks_lab))
         self.data_ax.set_xlabel("um")
         self.data_ax.set_ylabel("um")
 
