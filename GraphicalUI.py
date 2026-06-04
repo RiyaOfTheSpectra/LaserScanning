@@ -214,7 +214,6 @@ class Display():
         return
 
     def plot(self, data, bounds_um, ticks=5):
-
         if hasattr(self, 'fig'):
             self.data_ax.clear()
             self.cbar_ax.clear()
@@ -239,6 +238,17 @@ class Display():
 
         self.fig.colorbar(smap, cax=self.cbar_ax, label="APD Voltage (V)")
         self.canvas.draw()
+
+        self.canvas.callbacks.connect("button_press_event", self.on_click)
+
+        self.transform = self.data_ax.transData.inverted()
+        print(self.data_ax.transData.transform((0, 0)))
+        return
+
+    def on_click(self, event):
+        if event.inaxes == self.data_ax:
+            print(event.xdata, event.ydata)
+            print(self.transform.transform((event.xdata, event.ydata)))
         return
 
 if __name__ == "__main__":
