@@ -195,9 +195,23 @@ def AlignAPD(channel="0", frequency=1, amplitude=0.2):
 
     return
 
-def CleanUp():
+def MirrorHold(config, coords, term_sig):
+    output_devs = f"{config['device']['name']}/ao{config['device']['x_channel']}:{config['device']['y_channel']}"
+    term_sig.clear()
+    motor_coords = coords / config['magnification']
+    with ni.Task() as gal:
+        gal.ao_channels.add_ao_voltage_chan(output_devs)
+        gal.write(motor_coords)
+        term_sig.wait()
+        gal.write(np.zeros(2))
+    return
+
+def CleanUp(config):
+    # TODO: Make config aware. (Done, we think.)
+    output_devs = f"{config['device']['name']}/ao{config['device']['x_channel']}:{config['device']['y_channel']}"
     with ni.Task() as ao:
-        ao.ao_channels.add_ao_voltage_chan("Dev1/ao0:1")
+        #ao.ao_channels.add_ao_voltage_chan("Dev1/ao0:1")
+        ao.ao_channels.add_ao_voltage_chan(output_devs)
         ao.write([0, 0])
         ao.wait_until_done()
     return

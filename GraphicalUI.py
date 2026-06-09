@@ -1,13 +1,13 @@
 import tkinter as tk
 from tkinter import ttk
-from tkinter.messagebox import showwarning, showerror
+from tkinter.messagebox import showinfo, showwarning, showerror
 from tkinter.filedialog import askopenfile, asksaveasfile
 from tkinter.simpledialog import askinteger
 
 from multiprocessing.shared_memory import SharedMemory
+from threading import Thread, Event
+
 import json
-from Schema import EXP_SETTINGS
-from cerberus import Validator
 
 import numpy as np
 
@@ -17,11 +17,13 @@ from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
 
+from cerberus import Validator
+
 from pyperclip import copy
 
-from LaserScanning import AlignAPD, Scan, CleanUp
-
+from LaserScanning import AlignAPD, Scan, CleanUp, MirrorHold
 from Config import LoadConf
+from Schema import EXP_SETTINGS
 
 RESOLUTIONS = (440, 720, 1080, 2160)
 ADC_RANGES  = (0.2, 1, 5, 10)
@@ -38,7 +40,6 @@ class Display():
         self.scan_size_um 	= tk.DoubleVar()
         self.averaging 	    = tk.IntVar()
         self.aq_time_ms 	= tk.DoubleVar()
-        self.mirror_hold 	= tk.BooleanVar()
         
         self.align_channel  = tk.StringVar(value=CHANNELS)
         self.align_ampl     = tk.DoubleVar()
@@ -47,7 +48,6 @@ class Display():
         self.scan_size_um.set(256)
         self.averaging.set(1)
         self.aq_time_ms.set(0.01)
-        self.mirror_hold.set(False)
 
         # Frames and subframes
         self.frame = ttk.Frame(self.root)
@@ -138,6 +138,7 @@ class Display():
         self.root.bind('A', lambda x : self.align())
         self.root.bind('<KeyPress-F5>', lambda x : self.scan())
 
+        self.root.protocol("WM_DELETE_WINDOW", self.close)
         self.root.mainloop()
 
     def scan(self):
@@ -148,7 +149,7 @@ class Display():
             aq_time_ms = self.aq_time_ms.get(),
             average = self.averaging.get()
             )
-        CleanUp()
+        CleanUp(self.config)
 
         self.plot(self.data, float(self.scan_size_um.get()))
         return
@@ -176,13 +177,29 @@ class Display():
                 frequency=self.align_freq_hz.get(),
                 amplitude=self.align_ampl.get())
         
-        CleanUp()
+        CleanUp(self.config)
         return
 
     def config(self):
         return
 
     def mirror_hold(self):
+        if hasattr(self, 'coords'):
+            term_sig = Event()
+            term_sig.clear()
+            hold_thread = Thread(
+                target = MirrorHold,
+                args = (
+                    self.config,
+                    self.coords * 1e-6,
+                    term_sig))
+            hold_thread.start()
+            showinfo("Info", f"Mirror held.")
+            # TODO: Display point at mirror held
+            term_sig.set()
+            showinfo("Info", f"Mirror returned to center.")
+        else:
+            showwarning("Warning", "No point selected.")
         return
 
     def settings_save(self):
@@ -244,14 +261,19 @@ class Display():
         self.canvas.callbacks.connect("button_press_event", self.on_click)
 
         size = self.scan_size_um.get()
-        self.transform = lambda event: np.array2string((np.array(self.data_ax.transAxes.inverted().transform((event.x, event.y))) - np.array([0.5, 0.5])) * size)
+        self.transform = lambda event: (np.array(self.data_ax.transAxes.inverted().transform((event.x, event.y))) - np.array([0.5, 0.5])) * size
         return
 
     def on_click(self, event):
         if event.inaxes == self.data_ax:
-            copy(self.transform(event))
+            self.coords = self.transform(event)
+            copy(np.array2string(self.coords))
+        return
+
+    def close(self):
+        CleanUp(self.config)
+        self.root.destroy()
         return
 
 if __name__ == "__main__":
     Display()
-    CleanUp()
