@@ -55,7 +55,7 @@ def main():
                 z = Scan(
                     conf,
                     args.amplitude,
-                    resolution=args.resolution,
+                    resolution=args.angl_step,
                     aq_time_ms=args.time_step,
                     average=args.average,
                 )
@@ -64,7 +64,7 @@ def main():
                 l = int(np.sqrt(samps))
                 z = np.reshape(z, (l, l, 3))[:, :, 1]
                 """
-                CleanUp()
+                CleanUp(conf)
 
                 # TODO: Axes labelling.
                 if args.show:
@@ -81,23 +81,23 @@ def main():
                         args.output,
                         z,
                         delimiter=",",
-                        header=f"Amplitude = {args.amplitude}°,\nAcquisition time = {args.time_step}ms\nAngular Resolution = {args.resolution}°\nAverage = {average}",
+                        header=f"Amplitude = {args.amplitude}°,\nAcquisition time = {args.time_step}ms\nAngular Resolution = {args.angl_step}°\nAverage = {average}",
                     )
 
             case "align":
                 AlignAPD(args.channel, args.frequency, args.amplitude)
-                CleanUp()
+                CleanUp(conf)
 
             case "dry":
                 Scan(
                     conf,
                     args.amplitude,
-                    resolution=args.resolution,
+                    resolution=args.angl_step,
                     dry=True)
 
     except Exception as E:
         print(E)
-        CleanUp()
+        CleanUp(conf)
 
 if __name__ == "__main__":
     windll.shcore.SetProcessDpiAwareness(1)

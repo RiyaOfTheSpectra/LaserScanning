@@ -207,10 +207,8 @@ def MirrorHold(config, coords, term_sig):
     return
 
 def CleanUp(config):
-    # TODO: Make config aware. (Done, we think.)
     output_devs = f"{config['device']['name']}/ao{config['device']['x_channel']}:{config['device']['y_channel']}"
     with ni.Task() as ao:
-        #ao.ao_channels.add_ao_voltage_chan("Dev1/ao0:1")
         ao.ao_channels.add_ao_voltage_chan(output_devs)
         ao.write([0, 0])
         ao.wait_until_done()
