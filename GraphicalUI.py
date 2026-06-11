@@ -245,9 +245,9 @@ class Display():
         return
 
     def calibrate(self):
-        #if self.loaded:
-        #    showwarning("Calibration", "Nothing has been scanned yet.")
-        #    return
+        if self.loaded:
+            showwarning("Calibration", "Nothing has been scanned yet.")
+            return
 
         if hasattr(self, "data"):
             if askokcancel("Calibration", "Do you want to calibrate using the current scan?"):
@@ -264,15 +264,13 @@ class Display():
                 avg_kspc_dist = 0.5*(kspc_dist1 + kspc_dist2)
                 
                 # Convert major_k to spacing
-                if not hasattr(self, "volt_per_pixel"):
-                    volt_amp = askfloat("Calibration", "Enter the maximum voltage")
-                    self.volt_per_pixel = volt_amp / length
                 micron = askfloat("Calibration", "Enter spacing between adjacent markings in microns.")
                 volt_per_micron = self.volt_per_pixel * length / (micron * avg_kspc_dist)
                 microns_per_volt = 1 / volt_per_micron
                 askokcancel("Calibration", "Are you sure you want to erase the old calibration?")
                 showinfo("Calibration", f"{microns_per_volt}")
                 self.config['magnification'] = microns_per_volt
+                # TODO: Save this to a file.
         return
 
     def plot(self, data, bounds_um, ticks=5):
