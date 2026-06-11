@@ -5,6 +5,7 @@ from cerberus import Validator
 
 def LoadConf():
     v_ref = Validator(SCHEMA)
+    # TODO: Decide configuration location, and prompt user for secondary location on failure
 
     with open("config.toml", 'rb') as file:
         config = load(file)
