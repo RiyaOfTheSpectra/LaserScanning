@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
-from tkinter.messagebox import showinfo, showwarning, showerror
+from tkinter.messagebox import showinfo, showwarning, showerror, askokcancel
 from tkinter.filedialog import askopenfile, asksaveasfile
-from tkinter.simpledialog import askinteger
+from tkinter.simpledialog import askinteger, askfloat
 
 from multiprocessing.shared_memory import SharedMemory
 from threading import Thread, Event
@@ -18,6 +18,10 @@ from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
 
 from cerberus import Validator
+
+from scipy.fft import fft2
+from scipy.signal import find_peaks
+from skimage.feature import peak_local_max
 
 from pyperclip import copy
 
@@ -44,6 +48,8 @@ class Display():
         self.align_channel  = tk.StringVar(value=CHANNELS)
         self.align_ampl     = tk.DoubleVar()
         self.align_freq_hz  = tk.DoubleVar()
+
+        self.loaded         = True
 
         self.scan_size_um.set(256)
         self.averaging.set(1)
@@ -131,6 +137,8 @@ class Display():
                 .grid(row=0, column=7, sticky=(tk.N, tk.W, tk.E, tk.S))
         ttk.Button(self.menu_bar, text="Config", command=self.config)\
                 .grid(row=0, column=8, sticky=(tk.N, tk.W, tk.E, tk.S))
+        ttk.Button(self.menu_bar, text="Calibrate", command=self.calibrate)\
+                .grid(row=0, column=9, sticky=(tk.N, tk.W, tk.E, tk.S))
 
         self.root.bind('r', lambda x : self.res_entry.focus())
         self.root.bind('t', lambda x : self.aqt_entry.focus())
@@ -149,7 +157,10 @@ class Display():
             aq_time_ms = self.aq_time_ms.get(),
             average = self.averaging.get()
             )
+        self.volt_per_pixel = self.scan_size_um / (self.config['magnification'] * self.res_entry.get())
+
         CleanUp(self.config)
+        self.loaded = False
 
         self.plot(self.data, float(self.scan_size_um.get()))
         return
@@ -166,9 +177,10 @@ class Display():
 
     def load(self):
         file = askopenfile()
-        data = np.loadtxt(file, delimiter=',')
+        self.data = np.loadtxt(file, delimiter=',')
+        self.loaded = True
 
-        self.plot(data, int(self.scan_size_um.get()))
+        self.plot(self.data, int(self.scan_size_um.get()))
         return
 
     def align(self):
@@ -230,6 +242,37 @@ class Display():
         else:
             print(Validator(EXP_SETTINGS).errors)
             raise ValueError("Bad settings file")
+        return
+
+    def calibrate(self):
+        #if self.loaded:
+        #    showwarning("Calibration", "Nothing has been scanned yet.")
+        #    return
+
+        if hasattr(self, "data"):
+            if askokcancel("Calibration", "Do you want to calibrate using the current scan?"):
+                fourier = np.abs(np.fft.fftshift(fft2(self.data)))
+                length = np.shape(fourier)[0]
+                # Set the centre of array to zero
+                # major_k = find_peaks(fourier) # This doesn't work, need to use skimage.feature (see line below)
+                major_k = peak_local_max(fourier) # Can also specify minimum spacing between peaks
+                peak0 = major_k[0]
+                peak1 = major_k[1]
+                peak2 = major_k[2]
+                kspc_dist1 = np.sqrt(np.sum((peak0 - peak1)**2))
+                kspc_dist2 = np.sqrt(np.sum((peak0 - peak2)**2))
+                avg_kspc_dist = 0.5*(kspc_dist1 + kspc_dist2)
+                
+                # Convert major_k to spacing
+                if not hasattr(self, "volt_per_pixel"):
+                    volt_amp = askfloat("Calibration", "Enter the maximum voltage")
+                    self.volt_per_pixel = volt_amp / length
+                micron = askfloat("Calibration", "Enter spacing between adjacent markings in microns.")
+                volt_per_micron = self.volt_per_pixel * length / (micron * avg_kspc_dist)
+                microns_per_volt = 1 / volt_per_micron
+                askokcancel("Calibration", "Are you sure you want to erase the old calibration?")
+                showinfo("Calibration", f"{microns_per_volt}")
+                self.config['magnification'] = microns_per_volt
         return
 
     def plot(self, data, bounds_um, ticks=5):
